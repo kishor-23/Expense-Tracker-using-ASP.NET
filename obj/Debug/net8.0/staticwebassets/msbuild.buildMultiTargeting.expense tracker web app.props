@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/expense tracker web app.props" />
+</Project>

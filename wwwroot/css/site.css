@@ -1,0 +1,32 @@
+/* Default Light Mode */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* Footer default (light) */
+footer.footer {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+body.dark-mode .navbar {
+    background-color: #1e1e1e !important;
+}
+
+body.dark-mode .card,
+body.dark-mode .table {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+body.dark-mode footer.footer {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}

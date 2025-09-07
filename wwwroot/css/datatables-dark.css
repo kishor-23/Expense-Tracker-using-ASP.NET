@@ -1,0 +1,71 @@
+/* Modern Dark Mode for DataTable */
+body.dark-mode table.dataTable {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid #333;
+}
+
+body.dark-mode table.dataTable thead {
+    background-color: #2a2a2a;
+    color: #f1f1f1;
+    border-bottom: 2px solid #444;
+}
+
+body.dark-mode table.dataTable tbody tr {
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+body.dark-mode table.dataTable tbody tr:nth-child(even) {
+    background-color: #252525;
+}
+
+body.dark-mode table.dataTable tbody tr:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_filter input,
+body.dark-mode .dataTables_wrapper .dataTables_length select {
+    background: #2a2a2a;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_info,
+body.dark-mode .dataTables_wrapper .dataTables_paginate {
+    color: #ccc;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background: #2a2a2a;
+    color: #ccc !important;
+    border: 1px solid #444;
+    border-radius: 4px;
+    margin: 2px;
+    transition: 0.3s;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #444 !important;
+    color: #fff !important;
+    border: 1px solid #666;
+}
+
+body.dark-mode .dt-button {
+    background: #2a2a2a !important;
+    color: #eee !important;
+    border: 1px solid #444 !important;
+    border-radius: 4px;
+    padding: 5px 12px;
+    margin: 2px;
+    transition: 0.3s;
+}
+
+body.dark-mode .dt-button:hover {
+    background: #444 !important;
+    border: 1px solid #666 !important;
+    color: #fff !important;
+}

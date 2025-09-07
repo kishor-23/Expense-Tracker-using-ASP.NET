@@ -1,0 +1,244 @@
+@model IEnumerable<expense_tracker_web_app.Models.Expense>
+
+@{
+    ViewData["Title"] = "Expenses";
+    var categories = ViewBag.Categories as List<expense_tracker_web_app.Models.Category>;
+}
+
+<h1>Expenses</h1>
+
+<p>
+    <button class="btn btn-primary" id="btnCreateExpense">Create New Expense</button>
+</p>
+
+<table id="expensesTable" class="table table-striped display nowrap" style="width:100%">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr data-id="@item.Id">
+                <td>@item.Name</td>
+                <td>@item.Amount</td>
+                <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                <td>@item.Category?.Name</td>
+                <td>
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="@item.Id">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="@item.Id">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Monthly Report Summary -->
+<div id="monthlyReport" class="mt-5">
+    <h4>Monthly Expense Report</h4>
+    <ul id="monthlySummary" class="list-group"></ul>
+</div>
+
+<!-- Chart -->
+<div id="chart_div" style="width: 100%; height: 500px; margin-top: 50px;"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="expenseModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="expenseForm">
+                    <input type="hidden" id="expenseId" name="Id" />
+                    <div class="mb-3">
+                        <label for="expenseName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="expenseName" name="Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="expenseAmount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="expenseAmount" name="Amount" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="expenseDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="expenseDate" name="Date" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="expenseCategory" class="form-label">Category</label>
+                        <select class="form-control" id="expenseCategory" name="CategoryId">
+                            <option value="">--Select--</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btnSave">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Google Charts -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+
+    <!-- DataTables Buttons -->
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable with export buttons
+            var table = $('#expensesTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Expenses_Report'
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'Expenses_Report',
+                        orientation: 'landscape',
+                        pageSize: 'A4'
+                    },
+                    {
+                        extend: 'print',
+                        title: 'Expenses Report'
+                    }
+                ]
+            });
+
+            // Load Pie Chart
+            google.charts.load('current', { packages: ['corechart'] });
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                fetch('/Expenses/GetExpenseChartData')
+                    .then(res => res.json())
+                    .then(data => {
+                        var chartData = [['Category', 'Total Amount']];
+                        data.forEach(item => chartData.push([item.category, item.total]));
+                        var options = {
+                            title: 'Expenses by Category',
+                            pieHole: 0.4
+                        };
+                        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+                        chart.draw(google.visualization.arrayToDataTable(chartData), options);
+                    });
+            }
+
+            // Load Monthly Summary
+            function loadMonthlySummary() {
+                fetch('/Expenses/GetMonthlySummary')
+                    .then(res => res.json())
+                    .then(data => {
+                        var $list = $('#monthlySummary');
+                        $list.empty();
+                        data.forEach(item => {
+                            $list.append(`<li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${item.month}
+                                <span class="badge bg-primary rounded-pill">$${item.total.toFixed(2)}</span>
+                            </li>`);
+                        });
+                    });
+            }
+
+            loadMonthlySummary();
+
+            // Create Button Click
+            $('#btnCreateExpense').click(function () {
+                $('#expenseModalTitle').text('Create Expense');
+                $('#expenseForm')[0].reset();
+                $('#expenseId').val('');
+                var modal = new bootstrap.Modal(document.getElementById('expenseModal'));
+                modal.show();
+            });
+
+            // Edit Button Click
+            $(document).on('click', '.edit-btn', function () {
+                var tr = $(this).closest('tr');
+                var rowData = table.row(tr).data();
+
+                $('#expenseModalTitle').text('Edit Expense');
+                $('#expenseId').val(tr.data('id'));
+                $('#expenseName').val(rowData[0]);
+                $('#expenseAmount').val(rowData[1]);
+                $('#expenseDate').val(rowData[2]);
+
+                var categoryName = rowData[3];
+                $('#expenseCategory option').filter(function () {
+                    return $(this).text() === categoryName;
+                }).prop('selected', true);
+
+                var modal = new bootstrap.Modal(document.getElementById('expenseModal'));
+                modal.show();
+            });
+
+            // Delete Button Click
+            $(document).on('click', '.delete-btn', function () {
+                if (!confirm('Are you sure?')) return;
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '/Expenses/Delete/' + id,
+                    type: 'POST',
+                    success: function (res) {
+                        if (res.success) {
+                            table.row($('tr[data-id="' + id + '"]')).remove().draw();
+                            drawChart();
+                            loadMonthlySummary();
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                });
+            });
+
+            // Save (Create or Edit)
+            $('#expenseForm').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var id = $('#expenseId').val();
+                var url = id ? '/Expenses/Edit' : '/Expenses/Create';
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (res) {
+                        if (res.success) {
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('expenseModal'));
+                            modal.hide();
+                            location.reload(); // Simple reload to refresh table/chart/summary
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

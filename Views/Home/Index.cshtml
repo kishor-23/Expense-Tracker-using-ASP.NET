@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Expense Tracker";
+}
+
+<!-- Banner Section -->
+<div class="banner text-center text-white py-5" style="background: linear-gradient(to right, #4e73df, #224abe);">
+    <h1 class="display-4 fw-bold">Welcome to Expense Tracker</h1>
+    <p class="lead">Take control of your finances, track your spending, and make smarter money decisions.</p>
+    <a class="btn btn-light btn-lg me-2" asp-controller="Expenses" asp-action="Index">View Expenses</a>
+    <a class="btn btn-outline-light btn-lg" asp-controller="Categories" asp-action="Index">Manage Categories</a>
+ 
+</div>
+
+
+<!-- Features Section -->
+<div class="container my-5">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4">
+                <h5 class="card-title">Add Expenses</h5>
+                <p class="card-text">Quickly record your daily expenses and keep your spending organized.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4">
+                <h5 class="card-title">Categorize Spending</h5>
+                <p class="card-text">Assign categories to your expenses to see where your money goes.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4">
+                <h5 class="card-title">Visualize Data</h5>
+                <p class="card-text">View charts and summaries to understand your spending habits.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Your Financial Insights</h2>
+    <div class="row">
+        <!-- Monthly Expense Time Chart -->
+        <div class="col-md-6">
+            <div id="time_chart_div" style="width: 100%; height: 400px;"></div>
+        </div>
+        <!-- Category-Wise Expense Chart -->
+        <div class="col-md-6">
+            <div id="category_chart_div" style="width: 100%; height: 400px;"></div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="~/css/datatables-dark.css" />
+
+
+<!-- DataTable Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Demo Expense Data (with Export Options)</h2>
+    <table id="demoTable" class="table table-striped table-bordered" style="width:100%">
+        <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>2025-01-10</td><td>Food</td><td>Lunch</td><td>₹250</td></tr>
+            <tr><td>2025-01-11</td><td>Transport</td><td>Cab Ride</td><td>₹300</td></tr>
+            <tr><td>2025-01-12</td><td>Shopping</td><td>Clothes</td><td>₹1200</td></tr>
+            <tr><td>2025-01-13</td><td>Bills</td><td>Electricity</td><td>₹1500</td></tr>
+            <tr><td>2025-01-14</td><td>Entertainment</td><td>Movie</td><td>₹400</td></tr>
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <!-- jQuery + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" />
+
+   
+
+    <script>
+        // Load Google Charts
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            drawTimeChart();
+            drawCategoryChart();
+        }
+
+        function getChartColors() {
+            if ($("body").hasClass("dark-mode")) {
+                return {
+                    backgroundColor: "#121212",
+                    textColor: "#e0e0e0"
+                };
+            } else {
+                return {
+                    backgroundColor: "#fff",
+                    textColor: "#000"
+                };
+            }
+        }
+
+        // Monthly Expense Line Chart
+        function drawTimeChart() {
+            const colors = getChartColors();
+            const data = google.visualization.arrayToDataTable([
+                ['Month', 'Total Expense'],
+                ['Jan', 500],
+                ['Feb', 800],
+                ['Mar', 650],
+                ['Apr', 900],
+                ['May', 700],
+                ['Jun', 1100],
+                ['Jul', 950]
+            ]);
+
+            const options = {
+                title: 'Monthly Expense Over Time',
+                hAxis: { title: 'Month', textStyle: { color: colors.textColor }, titleTextStyle: { color: colors.textColor } },
+                vAxis: { title: 'Total Expense', textStyle: { color: colors.textColor }, titleTextStyle: { color: colors.textColor } },
+                legend: { position: 'bottom', textStyle: { color: colors.textColor } },
+                backgroundColor: colors.backgroundColor,
+                curveType: 'function'
+            };
+
+            const chart = new google.visualization.LineChart(document.getElementById('time_chart_div'));
+            chart.draw(data, options);
+        }
+
+        // Category-Wise Expense Pie Chart
+        function drawCategoryChart() {
+            const colors = getChartColors();
+            const data = google.visualization.arrayToDataTable([
+                ['Category', 'Total Expense'],
+                ['Food', 1200],
+                ['Transport', 600],
+                ['Entertainment', 400],
+                ['Shopping', 900],
+                ['Bills', 700],
+                ['Others', 300]
+            ]);
+
+            const options = {
+                title: 'Category-Wise Expense Distribution',
+                pieHole: 0.4,
+                legend: { position: 'bottom', textStyle: { color: colors.textColor } },
+                backgroundColor: colors.backgroundColor
+            };
+
+            const chart = new google.visualization.PieChart(document.getElementById('category_chart_div'));
+            chart.draw(data, options);
+        }
+
+        // DataTable Init
+        $(document).ready(function () {
+            $('#demoTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copy', className: 'btn btn-secondary' },
+                    { extend: 'csv', className: 'btn btn-secondary' },
+                    { extend: 'excel', className: 'btn btn-secondary' },
+                    { extend: 'pdf', className: 'btn btn-secondary' },
+                    { extend: 'print', className: 'btn btn-secondary' }
+                ]
+            });
+
+            // Dark Mode Toggle
+            $("#darkModeToggle").click(function () {
+                $("body").toggleClass("dark-mode");
+                drawCharts(); // Redraw charts with new colors
+            });
+        });
+    </script>
+}
